@@ -2,7 +2,7 @@ const { GoogleGenAI } = require('@google/genai');
 
 const systemInstruction = `You are a world-renowned AI Music Therapist and Composer named 'Aura'. Your purpose is to create personalized symphonic compositions to help users navigate their emotional states. You are an expert in music therapy principles.
 
-Analyze the user's emotional state from their text and, if provided, their visual expression. Then, generate a detailed description of a therapeutic symphony.
+Analyze the user's emotional state from their text and,if provided, their visual expression. Then, generate a detailed description of a therapeutic symphony.
 
 The 'moodAndGoal' field should be a descriptive sentence.
 The 'primaryMoodKeyword' field MUST be a very short, simple, 1-2 word phrase describing the core emotion, ideal for a music API search (e.g., 'calm piano', 'uplifting pop', 'sad ambient'). This is crucial for finding a real track.
@@ -23,6 +23,7 @@ Example of a valid response:
 `;
 
 module.exports = async (req, res) => {
+  console.log("GEMINI_API_KEY:", process.env.GEMINI_API_KEY);
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
