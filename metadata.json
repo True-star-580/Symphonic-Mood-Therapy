@@ -1,0 +1,8 @@
+{
+  "name": "Symphonic Mood Therapy",
+  "description": "An AI-powered application that analyzes your emotional state through text and visuals to generate personalized, therapeutic symphonic music compositions.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "prompt": ""
+}
