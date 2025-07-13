@@ -1,7 +1,5 @@
 const { GoogleGenAI } = require('@google/genai');
 
-const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
-
 const systemInstruction = `You are a world-renowned AI Music Therapist and Composer named 'Aura'. Your purpose is to create personalized symphonic compositions to help users navigate their emotional states. You are an expert in music therapy principles.
 
 Analyze the user's emotional state from their text and, if provided, their visual expression. Then, generate a detailed description of a therapeutic symphony.
@@ -29,18 +27,20 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  if (!process.env.GEMINI_API_KEY) {
+    console.error('GEMINI_API_KEY is not set');
+    return res.status(500).json({ error: 'A server error occurred: API key not configured.' });
+  }
+
+  const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+
   const { input } = req.body;
 
   if (!input) {
     return res.status(400).json({ error: 'Missing input in request body' });
   }
 
-  const contentParts = [
-    { text: input.text },
-    {
-      text: `Analyze the provided emotional data. Based on your analysis, compose a description of a therapeutic symphony. Respond ONLY with a valid JSON object following the specified schema.`
-    }
-  ];
+  const contentParts = [{ text: input.text }];
 
   if (input.imageBase64) {
     const base64Data = input.imageBase64.split(',')[1];
@@ -79,7 +79,13 @@ module.exports = async (req, res) => {
       jsonStr = match[1].trim();
     }
 
-    const rawData = JSON.parse(jsonStr);
+    let rawData;
+    try {
+      rawData = JSON.parse(jsonStr);
+    } catch (e) {
+      console.error("Failed to parse JSON from Gemini API response:", jsonStr);
+      throw new Error("The AI returned a response that was not valid JSON.");
+    }
 
     const parsedData = {
       title: rawData.title || 'Untitled Symphony',
@@ -96,6 +102,7 @@ module.exports = async (req, res) => {
     res.status(200).json(parsedData);
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    res.status(500).json({ error: 'An unknown error occurred while communicating with the AI.' });
+    const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+    res.status(500).json({ error: `An error occurred while communicating with the AI: ${message}` });
   }
 };
